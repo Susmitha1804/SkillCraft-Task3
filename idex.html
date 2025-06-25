@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HTML Quiz Game</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --card: #f4f4f4;
+      --accent: #007bff;
+    }
+
+    body.dark {
+      --bg: #121212;
+      --text: #ffffff;
+      --card: #1e1e1e;
+      --accent: #00bcd4;
+    }
+
+    body.ocean {
+      --bg: #e0f7fa;
+      --text: #01579b;
+      --card: #b2ebf2;
+      --accent: #0288d1;
+    }
+
+    body.sunset {
+      --bg: #fff3e0;
+      --text: #e65100;
+      --card: #ffe0b2;
+      --accent: #fb8c00;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: var(--card);
+      padding: 30px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      position: relative;
+    }
+
+    #options button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      background: var(--accent);
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #options button:hover {
+      opacity: 0.9;
+    }
+
+    #next-btn, #restart-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .correct {
+      background-color: green !important;
+    }
+
+    .incorrect {
+      background-color: red !important;
+    }
+
+    .theme-buttons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    .theme-buttons button {
+      margin-left: 5px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    #thank-you {
+      margin-top: 10px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HTML Quiz</h1>
+
+    <div class="theme-buttons">
+      <button onclick="setTheme('')">Light</button>
+      <button onclick="setTheme('dark')">Dark</button>
+      <button onclick="setTheme('ocean')">Ocean</button>
+      <button onclick="setTheme('sunset')">Sunset</button>
+    </div>
+
+    <div id="quiz-container">
+      <div id="question">Loading...</div>
+      <div id="options"></div>
+      <button id="next-btn" onclick="nextQuestion()">Next</button>
+    </div>
+
+    <div id="result" class="hidden">
+      <h2>Your Score: <span id="score"></span>/10</h2>
+      <p id="thank-you">Thank you for participating in the quiz! 🎉</p>
+      <button id="restart-btn" onclick="restartQuiz()">Restart Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "What does HTML stand for?",
+        options: [
+          "Hyper Text Markup Language",
+          "High Text Machine Language",
+          "Hyperlink and Text Markup Language",
+          "Home Tool Markup Language"
+        ],
+        answer: "Hyper Text Markup Language"
+      },
+      {
+        question: "Choose the correct HTML element for the largest heading:",
+        options: ["<h1>", "<heading>", "<head>", "<h6>"],
+        answer: "<h1>"
+      },
+      {
+        question: "Which HTML tag is used to define an internal style sheet?",
+        options: ["<style>", "<css>", "<script>", "<link>"],
+        answer: "<style>"
+      },
+      {
+        question: "What is the correct HTML element for inserting a line break?",
+        options: ["<br>", "<break>", "<lb>", "<newline>"],
+        answer: "<br>"
+      },
+      {
+        question: "Which character is used to indicate an end tag?",
+        options: ["/", "<", "*", "^"],
+        answer: "/"
+      },
+      {
+        question: "How can you make a numbered list?",
+        options: ["<ol>", "<ul>", "<dl>", "<list>"],
+        answer: "<ol>"
+      },
+      {
+        question: "What is the correct HTML for making a checkbox?",
+        options: [
+          "<input type='checkbox'>",
+          "<check>",
+          "<checkbox>",
+          "<input checkbox>"
+        ],
+        answer: "<input type='checkbox'>"
+      },
+      {
+        question: "Which HTML element defines the title of a document?",
+        options: ["<title>", "<meta>", "<head>", "<h1>"],
+        answer: "<title>"
+      },
+      {
+        question: "Which tag is used to display a picture in HTML?",
+        options: ["<img>", "<picture>", "<src>", "<image>"],
+        answer: "<img>"
+      },
+      {
+        question: "What is the correct HTML for creating a hyperlink?",
+        options: [
+          "<a href='url'>Link</a>",
+          "<a url='link'>",
+          "<a>link</a>",
+          "<link href='url'>"
+        ],
+        answer: "<a href='url'>Link</a>"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const nextBtn = document.getElementById('next-btn');
+    const resultEl = document.getElementById('result');
+    const scoreEl = document.getElementById('score');
+    const quizContainer = document.getElementById('quiz-container');
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function loadQuestion() {
+      const current = quizData[currentQuestion];
+      questionEl.textContent = `${currentQuestion + 1}. ${current.question}`;
+      const shuffledOptions = [...current.options];
+      shuffle(shuffledOptions);
+      optionsEl.innerHTML = "";
+
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        btn.onclick = () => selectAnswer(btn, current.answer);
+        optionsEl.appendChild(btn);
+      });
+
+      nextBtn.style.display = "none";
+    }
+
+    function selectAnswer(btn, correctAnswer) {
+      const allBtns = optionsEl.querySelectorAll('button');
+      allBtns.forEach(b => b.disabled = true);
+      if (btn.textContent === correctAnswer) {
+        btn.classList.add('correct');
+        score++;
+      } else {
+        btn.classList.add('incorrect');
+        allBtns.forEach(b => {
+          if (b.textContent === correctAnswer) b.classList.add('correct');
+        });
+      }
+      nextBtn.style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      quizContainer.classList.add('hidden');
+      resultEl.classList.remove('hidden');
+      scoreEl.textContent = score;
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      resultEl.classList.add('hidden');
+      quizContainer.classList.remove('hidden');
+      loadQuestion();
+    }
+
+    function setTheme(theme) {
+      document.body.className = theme;
+    }
+
+    window.onload = loadQuestion;
+  </script>
+</body>
+</html>
